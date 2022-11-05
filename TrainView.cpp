@@ -551,6 +551,7 @@ void TrainView::drawStuff(bool doingShadows)
 		}
 		
 	}
+
 	// draw the track
 	//####################################################################
 	// TODO: 
@@ -704,6 +705,9 @@ void TrainView::drawStuff(bool doingShadows)
 
 	if (!tw->trainCam->value()) {
 		drawTrain(doingShadows, 0);
+		for (int i = 0; i < num_cars; i++) {
+			drawTrain(doingShadows, (i + 1) * 10);
+		}
 	}
 #ifdef EXAMPLE_SOLUTION
 	drawTrack(this, doingShadows);
@@ -727,13 +731,13 @@ Pnt3f TrainView::GMT(const Pnt3f& pt0, const Pnt3f& pt1, const Pnt3f& pt2, const
 	glm::mat4x4 M;
 	switch (type) {
 	case 2: {
+		float s = tw->tension->value();
 		M = {
-			-1, 2, -1, 0,
-			3, -5, 0, 2,
-			-3, 4, 1, 0,
-			1, -1, 0, 0
+			-s, 2*s, -s, 0,
+			2-s, s-3, 0, 1,
+			s-2, 3-2*s, s, 0,
+			s, -s, 0, 0
 		};
-		M /= 2.0f;
 	}break;
 	case 3: {
 		M = {

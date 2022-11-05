@@ -103,4 +103,5 @@ class TrainView : public Fl_Gl_Window
 		std::vector<float> copy_list_sum_track_length;
 
 		int start_point = 0;
+		int num_cars = 0; 
 };

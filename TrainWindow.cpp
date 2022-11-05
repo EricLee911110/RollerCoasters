@@ -142,6 +142,32 @@ TrainWindow(const int x, const int y)
 		rzp->callback((Fl_Callback*)rmzCB,this);
 
 		pty+=30;
+		tension = new Fl_Value_Slider(655, pty, 140, 20, "tension");
+		tension->range(0, 1);
+		tension->value(0.5);
+		tension->align(FL_ALIGN_LEFT);
+		tension->type(FL_HORIZONTAL);
+
+		pty += 50;
+		Fl_Button* button_add_num_car = new Fl_Button(605, pty, 50, 20, "+ car");
+		button_add_num_car->callback((Fl_Callback*)button_add_num_carCB, this);
+
+		Fl_Button* button_minus_num_car = new Fl_Button(665, pty, 50, 20, "- car");
+		button_minus_num_car->callback((Fl_Callback*)button_minus_num_carCB, this);
+
+		pty += 30;
+		rail_parallel = new Fl_Button(605, pty, 65, 20, "Parallel");
+		togglify(rail_parallel, 0);
+
+		rail_tile = new Fl_Button(675, pty, 30, 20, "Tile");
+		togglify(rail_tile, 0);
+
+		rail_road = new Fl_Button(710, pty, 40, 20, "Road");
+		togglify(rail_road, 0);
+		
+		rail_support = new Fl_Button(755, pty, 30, 20, "Sup");
+		togglify(rail_support, 0);
+
 
 		// TODO: add widgets for all of your fancier features here
 #ifdef EXAMPLE_SOLUTION

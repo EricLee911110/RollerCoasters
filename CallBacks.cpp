@@ -248,3 +248,14 @@ void rmzCB(Fl_Widget*, TrainWindow* tw)
 	rollz(tw, -1);
 }
 
+void button_add_num_carCB(Fl_Widget*, TrainWindow* tw)
+//===========================================================================
+{
+	tw->trainView->num_cars += 1;
+}
+
+void button_minus_num_carCB(Fl_Widget*, TrainWindow* tw)
+//===========================================================================
+{
+	tw->trainView->num_cars -= 1;
+}
