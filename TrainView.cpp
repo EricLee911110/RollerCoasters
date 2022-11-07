@@ -237,28 +237,31 @@ void TrainView::draw()
 	//
 	//**********************************************************************
 	
-	GLfloat lightPosition1[]	= {0,1,0,0}; // {50, 200.0, 50, 1.0};
-	GLfloat lightPosition2[]	= {0, 0.01, 0, 1.0};
-	GLfloat lightPosition3[]	= {0, 0.01, 0, 1.0};
-	GLfloat yellowLight[]		= {0.5f, 0.5f, .1f, 1.0};
-	GLfloat whiteLight[]			= {1.0f, 1.0f, 1.0f, 1.0};
-	GLfloat blueLight[]			= {.1f,.1f,.3f,1.0};
-	GLfloat grayLight[]			= {.3f, .3f, .3f, 1.0};
-	GLfloat redLight[]			= { 1.0f, 0.0f, 0.0f, 1.0f };
-	GLfloat blackLight[]		= { 0.0f, 0.0f, 0.0f, 1.0f };
-	GLfloat spot_dir[]			= { 1.0, 0.0, 0.0 };
+	GLfloat lightPosition1[]	= {0,100,0,0}; // {50, 200.0, 50, 1.0};
 	
+
+	GLfloat blackLight[]		= { 0.0f, 0.0f, 0.0f, 0.0f };
 
 	
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition1);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, blackLight);
-
 	
+
+	GLfloat lightPosition2[] = { 0, 5, 0, 1.0 };
+	GLfloat lightPosition3[] = { 0, 0.01, 0, 1.0 };
+	GLfloat yellowLight[] = { 0.5f, 0.5f, .1f, 1.0 };
+	GLfloat whiteLight[] = { 1.0f, 1.0f, 1.0f, 1.0 };
+	GLfloat blueLight[] = { .1f,.1f,.3f,1.0 };
+	GLfloat grayLight[] = { .3f, .3f, .3f, 1.0 };
+	GLfloat redLight[] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	GLfloat spot_dir[] = { 1.0, 0.0, 0.0 };
+
+
 	glLightfv(GL_LIGHT1, GL_POSITION, lightPosition2);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, redLight);
 
-	
-	glLightfv(GL_LIGHT2, GL_POSITION, lightPosition2);
+
+	glLightfv(GL_LIGHT2, GL_POSITION, lightPosition3);
 	glLightfv(GL_LIGHT2, GL_DIFFUSE, yellowLight);
 	glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, spot_dir);
 	glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, 30.0f);
@@ -285,6 +288,7 @@ void TrainView::draw()
 	//glDisable(GL_LIGHTING);
 	drawFloor(200,10);
 
+	
 
 	//*********************************************************************
 	// now draw the object and we need to do it twice
@@ -534,6 +538,36 @@ setProjection()
 void TrainView::drawStuff(bool doingShadows)
 {
 	std::vector<float> list_sum_track_length;
+
+	if (tw->Light1->value()) {
+		glEnable(GL_LIGHT1);
+	}
+	else
+		glDisable(GL_LIGHT1);
+
+	if (tw->Light2->value()) {
+		glEnable(GL_LIGHT2);
+	}
+	else
+		glDisable(GL_LIGHT2);
+	
+
+	// my_scene
+	if (tw->my_scene->value()) {
+		
+		glBegin(GL_POLYGON);
+		glColor3f(1, 1, 1);
+		glTexCoord2f(1, 1);
+		glVertex3f(200, 0.1, 200);
+		glTexCoord2f(0, 1);
+		glVertex3f(200, 0.1, -200);
+		glTexCoord2f(0, 0);
+		glVertex3f(-200, 0.1, -200);
+		glTexCoord2f(1, 0);
+		glVertex3f(-200, 0.1, 200);
+		glEnd();
+	}
+	
 
 	// Draw the control points
 	// don't draw the control points if you're driving 

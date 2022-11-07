@@ -101,6 +101,11 @@ class TrainWindow : public Fl_Double_Window {
 		Fl_Button* rail_tile;
 		Fl_Button* rail_road;
 		Fl_Button* rail_support;
+		Fl_Button* my_scene;
+
+		Fl_Button* Light0;
+		Fl_Button* Light1;
+		Fl_Button* Light2;
 
 		// we have other widgets as part of the sample solution
 		// this is not for 559 students to know about

@@ -168,6 +168,20 @@ TrainWindow(const int x, const int y)
 		rail_support = new Fl_Button(755, pty, 30, 20, "Sup");
 		togglify(rail_support, 0);
 
+		pty += 30;
+		my_scene = new Fl_Button(605, pty, 65, 20, "scene");
+		togglify(my_scene, 0);
+
+		pty += 30;
+		Light0 = new Fl_Button(605, pty, 65, 20, "L0");
+		togglify(Light0, 1);
+
+		Light1 = new Fl_Button(675, pty, 30, 20, "L1");
+		togglify(Light1, 1);
+
+		Light2 = new Fl_Button(710, pty, 40, 20, "L2");
+		togglify(Light2, 1);
+
 
 		// TODO: add widgets for all of your fancier features here
 #ifdef EXAMPLE_SOLUTION
