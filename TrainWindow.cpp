@@ -172,6 +172,17 @@ TrainWindow(const int x, const int y)
 		my_scene = new Fl_Button(605, pty, 65, 20, "scene");
 		togglify(my_scene, 0);
 
+		rail_tunnel = new Fl_Button(675, pty, 65, 20, "tunnel");
+		togglify(rail_tunnel, 0);
+		
+		pty += 30;
+		tunnel_length = new Fl_Value_Slider(655, pty, 140, 20, "tension");
+		tunnel_length->range(0, 1);
+		tunnel_length->value(0.5);
+		tunnel_length->align(FL_ALIGN_LEFT);
+		tunnel_length->type(FL_HORIZONTAL);
+
+
 		pty += 30;
 		Light0 = new Fl_Button(605, pty, 65, 20, "L0");
 		togglify(Light0, 1);

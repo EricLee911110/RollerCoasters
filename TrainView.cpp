@@ -220,16 +220,14 @@ void TrainView::draw()
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
 
 	// top view only needs one light
+	/*
 	if (tw->topCam->value()) {
 		glDisable(GL_LIGHT1);
 		glDisable(GL_LIGHT2);
-	} else {
-		glEnable(GL_LIGHT1);
-		glEnable(GL_LIGHT2);
 	}
+	*/
 
 	//*********************************************************************
 	//
@@ -237,34 +235,38 @@ void TrainView::draw()
 	//
 	//**********************************************************************
 	
-	GLfloat lightPosition1[]	= {0,100,0,0}; // {50, 200.0, 50, 1.0};
+	
 	
 
 	GLfloat blackLight[]		= { 0.0f, 0.0f, 0.0f, 0.0f };
 
 	
-	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition1);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, blackLight);
+	//glLightfv(GL_LIGHT0, GL_POSITION, lightPosition1);
+	//glLightfv(GL_LIGHT0, GL_DIFFUSE, blackLight);
 	
+	GLfloat lightPosition0[] = { 0,100,0,0 }; // {50, 200.0, 50, 1.0};
+	GLfloat lightPosition1[] = { -20, 15, 20, 1.0 };
+	GLfloat lightPosition2[] = { 0, 2, 0, 1.0 };
 
-	GLfloat lightPosition2[] = { 0, 5, 0, 1.0 };
-	GLfloat lightPosition3[] = { 0, 0.01, 0, 1.0 };
+	GLfloat spot_dir[] = { 0.0, 0.0, 1.0 };
+
+
+
 	GLfloat yellowLight[] = { 0.5f, 0.5f, .1f, 1.0 };
 	GLfloat whiteLight[] = { 1.0f, 1.0f, 1.0f, 1.0 };
 	GLfloat blueLight[] = { .1f,.1f,.3f,1.0 };
 	GLfloat grayLight[] = { .3f, .3f, .3f, 1.0 };
 	GLfloat redLight[] = { 1.0f, 0.0f, 0.0f, 1.0f };
-	GLfloat spot_dir[] = { 1.0, 0.0, 0.0 };
 
 
-	glLightfv(GL_LIGHT1, GL_POSITION, lightPosition2);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, redLight);
+	//glLightfv(GL_LIGHT1, GL_POSITION, lightPosition2);
+	//glLightfv(GL_LIGHT1, GL_DIFFUSE, redLight);
 
 
-	glLightfv(GL_LIGHT2, GL_POSITION, lightPosition3);
-	glLightfv(GL_LIGHT2, GL_DIFFUSE, yellowLight);
-	glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, spot_dir);
-	glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, 30.0f);
+	//glLightfv(GL_LIGHT2, GL_POSITION, lightPosition3);
+	//glLightfv(GL_LIGHT2, GL_DIFFUSE, yellowLight);
+	//glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, spot_dir);
+	//glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, 30.0f);
 
 
 	
@@ -277,7 +279,8 @@ void TrainView::draw()
 	glLightfv(GL_LIGHT2, GL_DIFFUSE, blueLight);
 	*/
 
-
+	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
 	//*********************************************************************
 	// now draw the ground plane
 	//*********************************************************************
@@ -286,7 +289,7 @@ void TrainView::draw()
 
 	setupFloor();
 	//glDisable(GL_LIGHTING);
-	drawFloor(200,10);
+	drawFloor(200,200);
 
 	
 
@@ -294,10 +297,12 @@ void TrainView::draw()
 	// now draw the object and we need to do it twice
 	// once for real, and then once for shadows
 	//*********************************************************************
-	glEnable(GL_LIGHTING);
+	
 	setupObjects();
 
 	drawStuff();
+
+	
 
 	// this time drawing is for shadows (except for top view)
 	if (!tw->topCam->value()) {
@@ -305,6 +310,32 @@ void TrainView::draw()
 		drawStuff(true);
 		unsetupShadows();
 	}
+
+	
+	GLfloat headLight_pos[] = {current_train_pos.x, current_train_pos.y, current_train_pos.z, 1};
+	GLfloat headLight_forward[] = { current_train_forward.x, current_train_forward.y, current_train_forward.z };
+ 
+	glLightfv(GL_LIGHT0, GL_POSITION, headLight_pos);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, yellowLight);
+	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, headLight_forward);
+	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 30.0f);;
+
+
+	glLightfv(GL_LIGHT1, GL_POSITION, lightPosition1);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, whiteLight);
+
+
+	
+	
+	glPushMatrix();
+	glTranslatef(-20, 19, 20);
+	glColor3f(1, 1, 1);
+	gluSphere(gluNewQuadric(), 1, 100, 20);
+	glPopMatrix();
+
+	
+
+
 }
 
 //************************************************************************
@@ -535,37 +566,89 @@ setProjection()
 //########################################################################
 //========================================================================
 
+void draw_one_plane(int start_x, int start_y, int end_x, int end_y, int num, int lock_dir, int lock_pos) {
+	float push_x = (end_x - start_x) / num;
+	float push_y = (end_y - start_y) / num;
+
+	if (lock_dir == 2) {
+		for (int i = 0; i < num; i++) {
+			for (int j = 0; j < num; j++) {
+				glBegin(GL_POLYGON);
+				glVertex3f(start_x + push_x * i, start_y + push_y * j, lock_pos);
+				glVertex3f(start_x + push_x * (i + 1), start_y + push_y * j, lock_pos);
+				glVertex3f(start_x + push_x * (i + 1), start_y + push_y * (j + 1), lock_pos);
+				glVertex3f(start_x + push_x * i, start_y + push_y * (j + 1), lock_pos);
+				glEnd();
+			}
+		}
+	}
+
+	if (lock_dir == 0) {
+		for (int i = 0; i < num; i++) {
+			for (int j = 0; j < num; j++) {
+				glBegin(GL_POLYGON);
+				glVertex3f(lock_pos, start_x + push_x * i, start_y + push_y * j);
+				glVertex3f(lock_pos, start_x + push_x * (i + 1), start_y + push_y * j);
+				glVertex3f(lock_pos, start_x + push_x * (i + 1), start_y + push_y * (j + 1));
+				glVertex3f(lock_pos, start_x + push_x * i, start_y + push_y * (j + 1));
+				glEnd();
+			}
+		}
+	}
+}
+
 void TrainView::drawStuff(bool doingShadows)
 {
 	std::vector<float> list_sum_track_length;
 
-	if (tw->Light1->value()) {
-		glEnable(GL_LIGHT1);
-	}
-	else
-		glDisable(GL_LIGHT1);
+	
 
-	if (tw->Light2->value()) {
-		glEnable(GL_LIGHT2);
-	}
-	else
-		glDisable(GL_LIGHT2);
+
 	
 
 	// my_scene
 	if (tw->my_scene->value()) {
 		
-		glBegin(GL_POLYGON);
-		glColor3f(1, 1, 1);
-		glTexCoord2f(1, 1);
-		glVertex3f(200, 0.1, 200);
-		glTexCoord2f(0, 1);
-		glVertex3f(200, 0.1, -200);
-		glTexCoord2f(0, 0);
-		glVertex3f(-200, 0.1, -200);
-		glTexCoord2f(1, 0);
-		glVertex3f(-200, 0.1, 200);
+		
+
+		glBegin(GL_LINES);
+		if (!doingShadows)
+			glColor3f(1, 1, 1);
+		glVertex3f(-25, 0, 25);
+		glVertex3f(-25, 20, 25);
+		
 		glEnd();
+
+		glBegin(GL_LINES);
+		if (!doingShadows)
+			glColor3f(1, 1, 1);
+		glVertex3f(-25, 20, 25);
+		glVertex3f(-20, 20, 20);
+
+		glEnd();
+		
+		
+		
+
+		if (!doingShadows)
+			glColor3f(0.8,0.8,0.8);
+		draw_one_plane(20, 0, 80, 20, 10, 2, -20); //(x,y)
+		draw_one_plane(20, 20, 40, 40, 10, 2, -20);
+		draw_one_plane(60, 20, 80, 40, 10, 2, -20);
+		draw_one_plane(20, 40, 80, 100, 10, 2, -20);
+
+		
+
+		draw_one_plane(0, -20, 60, -80, 10, 0, 20); //(y,z)
+		draw_one_plane(60, -20, 80, -40, 10, 0, 20);
+		draw_one_plane(60, -60, 80, -80, 10, 0, 20);
+		draw_one_plane(80, -20, 100, -80, 10, 0, 20);
+
+		if (!doingShadows)
+			glColor3f(0.2, 0.2, 0.2);
+		draw_one_plane(20, 0, 80, 100, 10, 2, -80);
+		draw_one_plane(0, -20, 100, -80, 10, 0, 80);
+	
 	}
 	
 
@@ -591,10 +674,16 @@ void TrainView::drawStuff(bool doingShadows)
 	// TODO: 
 	// call your own track drawing code
 	//####################################################################
-	
+	float tile_arc_two_cp_length = 0;
+	std::vector<Pnt3f> arc_list_tile_qt;
+
+	float arc_tunnel_two_cp_length = 0;
+	std::vector<Pnt3f> arc_list_tunnel_qt;
 	
 	if (tw->splineBrowser->value() == 1) {	// Linear
 		float total_length = 0;
+		
+
 		for (size_t i = 0; i < m_pTrack->points.size(); ++i) {
 
 			// pos
@@ -606,8 +695,10 @@ void TrainView::drawStuff(bool doingShadows)
 			float percent = 1.0f / DIVIDE_LINE;
 			float t = 0;
 			Pnt3f qt = (1 - t) * cp_pos_p1 + t * cp_pos_p2;
+			
 
 			float two_cp_length = 0;
+			
 
 			for (size_t j = 0; j < DIVIDE_LINE; j++) {
 				Pnt3f qt0 = qt;
@@ -617,33 +708,55 @@ void TrainView::drawStuff(bool doingShadows)
 				
 				//	get length
 				two_cp_length += std::sqrt((qt1.x - qt0.x) * (qt1.x - qt0.x) + (qt1.y - qt0.y) * (qt1.y - qt0.y) + (qt1.z - qt0.z) * (qt1.z - qt0.z));
+				tile_arc_two_cp_length += std::sqrt((qt1.x - qt0.x) * (qt1.x - qt0.x) + (qt1.y - qt0.y) * (qt1.y - qt0.y) + (qt1.z - qt0.z) * (qt1.z - qt0.z));
 
-				glLineWidth(3);
-				glBegin(GL_LINES);
-				if (!doingShadows)
-					glColor3ub(32, 32, 64);
-				glVertex3f(qt0.x, qt0.y, qt0.z);
-				glVertex3f(qt1.x, qt1.y, qt1.z);
-				glEnd();
-
+				if (!tw->rail_parallel->value()) {
+					glLineWidth(3);
+					glBegin(GL_LINES);
+					if (!doingShadows)
+						glColor3ub(32, 32, 64);
+					glVertex3f(qt0.x, qt0.y, qt0.z);
+					glVertex3f(qt1.x, qt1.y, qt1.z);
+					glEnd();
+				}
 				// cross
 
 
 				Pnt3f orient_t = (1 - t) * cp_orient_p1 + t * cp_orient_p2;
 				orient_t.normalize();
 				// Pnt3f forward = 
+				Pnt3f forward = (qt1 - qt0);
+				forward.normalize();
 				Pnt3f cross_t = (qt1 - qt0) * orient_t;
 
 				cross_t.normalize();
 				cross_t = cross_t * 2.5f;
-				glBegin(GL_LINES);
-				glVertex3f(qt0.x + cross_t.x, qt0.y + cross_t.y, qt0.z + cross_t.z);
-				glVertex3f(qt1.x + cross_t.x, qt1.y + cross_t.y, qt1.z + cross_t.z);
-				glVertex3f(qt0.x - cross_t.x, qt0.y - cross_t.y, qt0.z - cross_t.z);
-				glVertex3f(qt1.x - cross_t.x, qt1.y - cross_t.y, qt1.z - cross_t.z);
-				glEnd();
-				glLineWidth(1);
+				if (tw->rail_parallel->value()) {
+					glBegin(GL_LINES);
+					glLineWidth(3);
+					glVertex3f(qt0.x + cross_t.x, qt0.y + cross_t.y, qt0.z + cross_t.z);
+					glVertex3f(qt1.x + cross_t.x, qt1.y + cross_t.y, qt1.z + cross_t.z);
+					glVertex3f(qt0.x - cross_t.x, qt0.y - cross_t.y, qt0.z - cross_t.z);
+					glVertex3f(qt1.x - cross_t.x, qt1.y - cross_t.y, qt1.z - cross_t.z);
+					glEnd();
+				}
 
+				
+				if (tile_arc_two_cp_length >= 10) {
+					arc_list_tile_qt.push_back(qt);
+					arc_list_tile_qt.push_back(cross_t);
+					arc_list_tile_qt.push_back(forward);
+					tile_arc_two_cp_length = 0;
+
+				}
+
+				arc_list_tunnel_qt.push_back(qt);
+				arc_list_tunnel_qt.push_back(cross_t);
+				arc_list_tunnel_qt.push_back(forward);
+				
+
+
+				
 
 
 
@@ -653,6 +766,7 @@ void TrainView::drawStuff(bool doingShadows)
 			list_track_length.push_back(two_cp_length);
 			list_sum_track_length.push_back(total_length);
 		}
+
 		int length_list_track_length = list_track_length.size();
 		tw->tv_length_list_track_length = length_list_track_length;
 		tw->tv_list_track_length = list_track_length;
@@ -674,8 +788,193 @@ void TrainView::drawStuff(bool doingShadows)
 			std::cout << "track " << i << "'s length is: " << copy_list_sum_track_length[i] << std::endl;
 		}
 		*/
+		int length_arc_list_tile_qt = arc_list_tile_qt.size();
+		int length_arc_list_tunnel_qt = (int)(arc_list_tunnel_qt.size() * tw->tunnel_length->value());
 
+		// draw tile
+		if (tw->rail_tile->value()) {
+			
+			for (int i = 0; i < length_arc_list_tile_qt; i += 3) {
+				Pnt3f qt = arc_list_tile_qt[i];
+				Pnt3f right = arc_list_tile_qt[i + 1] * 2;
+				Pnt3f forward = arc_list_tile_qt[i + 2] * 2;
+				Pnt3f up = right * forward;
+				up.normalize();
+				
+				// up
+				glBegin(GL_POLYGON);
+				glNormal3f(up.x, up.y, up.z);
+				glVertex3f(qt.x + forward.x - right.x, qt.y + forward.y - right.y, qt.z + forward.z - right.z);
+				glVertex3f(qt.x + forward.x + right.x, qt.y + forward.y + right.y, qt.z + forward.z + right.z);
+				glVertex3f(qt.x - forward.x + right.x, qt.y - forward.y + right.y, qt.z - forward.z + right.z);
+				glVertex3f(qt.x - forward.x - right.x, qt.y - forward.y - right.y, qt.z - forward.z - right.z);
+				glEnd();
+
+				//down
+				glBegin(GL_POLYGON);
+				glNormal3f(-up.x, -up.y, -up.z);
+				glVertex3f(qt.x + forward.x - right.x - up.x, qt.y + forward.y - right.y - up.y, qt.z + forward.z - right.z - up.z);
+				glVertex3f(qt.x + forward.x + right.x - up.x, qt.y + forward.y + right.y - up.y, qt.z + forward.z + right.z - up.z);
+				glVertex3f(qt.x - forward.x + right.x - up.x, qt.y - forward.y + right.y - up.y, qt.z - forward.z + right.z - up.z);
+				glVertex3f(qt.x - forward.x - right.x - up.x, qt.y - forward.y - right.y - up.y, qt.z - forward.z - right.z - up.z);
+				glEnd();
+
+				//left
+				glBegin(GL_POLYGON);
+				glNormal3f(-up.x, -up.y, -up.z);
+				glVertex3f(qt.x + forward.x + right.x, qt.y + forward.y + right.y, qt.z + forward.z + right.z);
+				glVertex3f(qt.x + forward.x + right.x - up.x, qt.y + forward.y + right.y - up.y, qt.z + forward.z + right.z - up.z);
+				glVertex3f(qt.x - forward.x + right.x - up.x, qt.y - forward.y + right.y - up.y, qt.z - forward.z + right.z - up.z);
+				glVertex3f(qt.x - forward.x + right.x, qt.y - forward.y + right.y, qt.z - forward.z + right.z);
+				glEnd();
+
+				//left
+				glBegin(GL_POLYGON);
+				glNormal3f(-up.x, -up.y, -up.z);
+				glVertex3f(qt.x + forward.x - right.x, qt.y + forward.y - right.y, qt.z + forward.z - right.z);
+				glVertex3f(qt.x + forward.x - right.x - up.x, qt.y + forward.y - right.y - up.y, qt.z + forward.z - right.z - up.z);
+				glVertex3f(qt.x - forward.x - right.x - up.x, qt.y - forward.y - right.y - up.y, qt.z - forward.z - right.z - up.z);
+				glVertex3f(qt.x - forward.x - right.x, qt.y - forward.y - right.y, qt.z - forward.z - right.z);
+				glEnd();
+
+			}
+		}
+
+		if (tw->rail_tunnel->value()) {
+
+			for (int i = 0; i < length_arc_list_tunnel_qt; i += 3) {
+				Pnt3f qt = arc_list_tunnel_qt[i];
+				Pnt3f right = arc_list_tunnel_qt[i + 1] * 3;
+				Pnt3f forward = arc_list_tunnel_qt[i + 2] * 3;
+				Pnt3f up = right * forward;
+
+				forward.normalize();
+				forward = forward * 0.1;
+
+				up.normalize();
+				up = up * 10;
+
+				if (!doingShadows) {
+					glColor3f(0.5, 0.5, 0.1);
+				}
+
+				//right
+				glBegin(GL_POLYGON);
+				glNormal3f(-up.x, -up.y, -up.z);
+				glVertex3f(qt.x + right.x, qt.y + right.y, qt.z + right.z);
+				glVertex3f(qt.x + right.x + up.x, qt.y + right.y + up.y, qt.z + right.z + up.z);
+				glVertex3f(qt.x + right.x * 1.2 + up.x, qt.y + right.y * 1.2 + up.y, qt.z + right.z * 1.2 + up.z);
+				glVertex3f(qt.x + right.x * 1.2, qt.y + right.y * 1.2, qt.z + right.z * 1.2);
+				glEnd();
+
+				// top 
+				glBegin(GL_POLYGON);
+				glVertex3f(qt.x + up.x - right.x * 1.2, qt.y + up.y - right.y * 1.2, qt.z + up.z - right.z * 1.2);
+				glVertex3f(qt.x + up.x + right.x * 1.2, qt.y + up.y + right.y * 1.2, qt.z + up.z + right.z * 1.2);
+				glVertex3f(qt.x + up.x * 1.1 + right.x * 1.2, qt.y + up.y * 1.1 + right.y * 1.2, qt.z + up.z * 1.1 + right.z * 1.2);
+				glVertex3f(qt.x + up.x * 1.1 - right.x * 1.2, qt.y + up.y * 1.1 - right.y * 1.2, qt.z + up.z * 1.1 - right.z * 1.2);
+				glEnd();
+
+				// top outside
+				glBegin(GL_POLYGON);
+				glVertex3f(qt.x + up.x * 1.1 + right.x * 1.2, qt.y + up.y * 1.1 + right.y * 1.2, qt.z + up.z * 1.1 + right.z * 1.2);
+				glVertex3f(qt.x + up.x * 1.1 - right.x * 1.2, qt.y + up.y * 1.1 - right.y * 1.2, qt.z + up.z * 1.1 - right.z * 1.2);
+				glVertex3f(qt.x + up.x * 1.1 - right.x * 1.2 + forward.x, qt.y + up.y * 1.1 - right.y * 1.2 + forward.y, qt.z + up.z * 1.1 - right.z * 1.2 + forward.z);
+				glVertex3f(qt.x + up.x * 1.1 + right.x * 1.2 + forward.x, qt.y + up.y * 1.1 + right.y * 1.2 + forward.y, qt.z + up.z * 1.1 + right.z * 1.2 + forward.z);
+				glEnd();
+
+				// top inside
+				glBegin(GL_POLYGON);
+				glVertex3f(qt.x + up.x + right.x * 1.2, qt.y + up.y  + right.y * 1.2, qt.z + up.z  + right.z * 1.2);
+				glVertex3f(qt.x + up.x  - right.x * 1.2, qt.y + up.y  - right.y * 1.2, qt.z + up.z  - right.z * 1.2);
+				glVertex3f(qt.x + up.x  - right.x * 1.2 + forward.x, qt.y + up.y  - right.y * 1.2 + forward.y, qt.z + up.z  - right.z * 1.2 + forward.z);
+				glVertex3f(qt.x + up.x  + right.x * 1.2 + forward.x, qt.y + up.y  + right.y * 1.2 + forward.y, qt.z + up.z  + right.z * 1.2 + forward.z);
+				glEnd();
+
+
+
+
+				//right outside
+				glBegin(GL_POLYGON);
+				glNormal3f(-up.x, -up.y, -up.z);
+				glVertex3f(qt.x + right.x * 1.2, qt.y + right.y * 1.2, qt.z + right.z * 1.2);
+				glVertex3f(qt.x + right.x * 1.2 + up.x, qt.y + right.y * 1.2 + up.y, qt.z + right.z * 1.2 + up.z);
+				glVertex3f(qt.x + right.x * 1.2 + up.x + forward.x, qt.y + right.y * 1.2 + up.y + forward.y, qt.z + right.z * 1.2 + up.z + forward.z);
+				glVertex3f(qt.x + right.x * 1.2 + forward.x, qt.y + right.y * 1.2 + forward.y, qt.z + right.z * 1.2 + forward.z);
+				glEnd();
+
+				//right inside
+				glBegin(GL_POLYGON);
+				glNormal3f(-up.x, -up.y, -up.z);
+				glVertex3f(qt.x + right.x , qt.y + right.y , qt.z + right.z );
+				glVertex3f(qt.x + right.x  + up.x, qt.y + right.y  + up.y, qt.z + right.z  + up.z);
+				glVertex3f(qt.x + right.x  + up.x + forward.x, qt.y + right.y  + up.y + forward.y, qt.z + right.z  + up.z + forward.z);
+				glVertex3f(qt.x + right.x  + forward.x, qt.y + right.y  + forward.y, qt.z + right.z  + forward.z);
+				glEnd();
+
+				//left
+				glBegin(GL_POLYGON);
+				glNormal3f(-up.x, -up.y, -up.z);
+				glVertex3f(qt.x - right.x, qt.y - right.y, qt.z - right.z);
+				glVertex3f(qt.x - right.x + up.x, qt.y - right.y + up.y, qt.z - right.z + up.z);
+				glVertex3f(qt.x - right.x * 1.2 + up.x, qt.y - right.y * 1.2 + up.y, qt.z - right.z * 1.2 + up.z);
+				glVertex3f(qt.x - right.x * 1.2, qt.y - right.y * 1.2, qt.z - right.z * 1.2);
+				glEnd();
+
+				//left outside
+				glBegin(GL_POLYGON);
+				glNormal3f(-up.x, -up.y, -up.z);
+				glVertex3f(qt.x - right.x * 1.2, qt.y - right.y * 1.2, qt.z - right.z * 1.2);
+				glVertex3f(qt.x - right.x * 1.2 + up.x, qt.y - right.y * 1.2 + up.y, qt.z - right.z * 1.2 + up.z);
+				glVertex3f(qt.x - right.x * 1.2 + up.x + forward.x, qt.y - right.y * 1.2 + up.y + forward.y, qt.z - right.z * 1.2 + up.z + forward.z);
+				glVertex3f(qt.x - right.x * 1.2 + forward.x, qt.y - right.y * 1.2 + forward.y, qt.z - right.z * 1.2 + forward.z);
+				glEnd();
+
+				//left inside
+				glBegin(GL_POLYGON);
+				glNormal3f(-up.x, -up.y, -up.z);
+				glVertex3f(qt.x - right.x , qt.y - right.y , qt.z - right.z );
+				glVertex3f(qt.x - right.x  + up.x, qt.y - right.y  + up.y, qt.z - right.z  + up.z);
+				glVertex3f(qt.x - right.x  + up.x + forward.x, qt.y - right.y  + up.y + forward.y, qt.z - right.z  + up.z + forward.z);
+				glVertex3f(qt.x - right.x  + forward.x, qt.y - right.y  + forward.y, qt.z - right.z  + forward.z);
+				glEnd();
+			}
+		}
+
+		if (tw->rail_support->value()) {
+
+			for (int i = 0; i < length_arc_list_tile_qt; i += 6) {
+				Pnt3f qt = arc_list_tile_qt[i];
+				Pnt3f right = arc_list_tile_qt[i + 1];
+				Pnt3f forward = arc_list_tile_qt[i + 2] * 2;
+				Pnt3f up = right * forward;
+				up.normalize();
+
+				if (!tw->rail_parallel->value()) {
+					// up
+					glBegin(GL_LINES);
+					glLineWidth(200);
+					glVertex3f(qt.x, qt.y, qt.z);
+					glVertex3f(qt.x, 0, qt.z);
+					glEnd();
+				}
+				else {
+					glBegin(GL_LINES);
+					glLineWidth(200);
+					glVertex3f(qt.x + right.x, qt.y + right.y, qt.z + right.z);
+					glVertex3f(qt.x + right.x, 0, qt.z + right.z);
+
+					glVertex3f(qt.x - right.x, qt.y - right.y, qt.z - right.z);
+					glVertex3f(qt.x - right.x, 0, qt.z - right.z);
+					glEnd();
+				}
+
+
+			}
+		}
+		
 	}
+
 	else if (tw->splineBrowser->value() >= 2) { //
 		float total_length = 0;
 		for (size_t i = 0; i < m_pTrack->points.size(); ++i) {
@@ -695,6 +994,7 @@ void TrainView::drawStuff(bool doingShadows)
 			Pnt3f qt = GMT(cp_pos_p1, cp_pos_p2, cp_pos_p3, cp_pos_p4, t, tw->splineBrowser->value());
 
 			float two_cp_length = 0;
+			float arc_two_cp_length = 0;
 
 			for (size_t j = 0; j < DIVIDE_LINE; j++) {
 				Pnt3f qt0 = qt;
@@ -703,16 +1003,60 @@ void TrainView::drawStuff(bool doingShadows)
 				Pnt3f qt1 = qt;
 
 				two_cp_length += std::sqrt((qt1.x - qt0.x) * (qt1.x - qt0.x) + (qt1.y - qt0.y) * (qt1.y - qt0.y) + (qt1.z - qt0.z) * (qt1.z - qt0.z));
+				
+				arc_two_cp_length += std::sqrt((qt1.x - qt0.x) * (qt1.x - qt0.x) + (qt1.y - qt0.y) * (qt1.y - qt0.y) + (qt1.z - qt0.z) * (qt1.z - qt0.z));
+				tile_arc_two_cp_length += std::sqrt((qt1.x - qt0.x) * (qt1.x - qt0.x) + (qt1.y - qt0.y) * (qt1.y - qt0.y) + (qt1.z - qt0.z) * (qt1.z - qt0.z));
+
+				
+
+				if (arc_two_cp_length >= 1) {
+					list_qt.push_back(qt);
+					arc_two_cp_length = 0;
+				}
 
 
 
-				glLineWidth(3);
-				glBegin(GL_LINES);
-				if (!doingShadows)
-					glColor3ub(32, 32, 64);
-				glVertex3f(qt0.x, qt0.y, qt0.z);
-				glVertex3f(qt1.x, qt1.y, qt1.z);
-				glEnd();
+
+				if (!tw->rail_parallel->value()) {
+					glLineWidth(3);
+					glBegin(GL_LINES);
+					if (!doingShadows)
+						glColor3ub(32, 32, 64);
+					glVertex3f(qt0.x, qt0.y, qt0.z);
+					glVertex3f(qt1.x, qt1.y, qt1.z);
+					glEnd();
+				}
+
+				Pnt3f orient_t = GMT(cp_orient_p1, cp_orient_p2, cp_orient_p3, cp_orient_p4, t, tw->splineBrowser->value());
+				orient_t.normalize();
+				Pnt3f forward = qt1 - qt0;
+				forward.normalize();
+
+				Pnt3f cross_t = (qt1 - qt0) * orient_t;
+
+				cross_t.normalize();
+				cross_t = cross_t * 2.5f;
+				if (tw->rail_parallel->value()) {
+					glBegin(GL_LINES);
+					glLineWidth(3);
+					glVertex3f(qt0.x + cross_t.x, qt0.y + cross_t.y, qt0.z + cross_t.z);
+					glVertex3f(qt1.x + cross_t.x, qt1.y + cross_t.y, qt1.z + cross_t.z);
+					glVertex3f(qt0.x - cross_t.x, qt0.y - cross_t.y, qt0.z - cross_t.z);
+					glVertex3f(qt1.x - cross_t.x, qt1.y - cross_t.y, qt1.z - cross_t.z);
+					glEnd();
+				}
+
+				if (tile_arc_two_cp_length >= 10) {
+					arc_list_tile_qt.push_back(qt);
+					arc_list_tile_qt.push_back(cross_t);
+					arc_list_tile_qt.push_back(forward);
+					tile_arc_two_cp_length = 0;
+
+				}
+
+				arc_list_tunnel_qt.push_back(qt0);
+				arc_list_tunnel_qt.push_back(cross_t);
+				arc_list_tunnel_qt.push_back(forward);
 
 			}
 			
@@ -727,20 +1071,212 @@ void TrainView::drawStuff(bool doingShadows)
 		tw->tv_list_track_length = list_track_length;
 
 		copy_list_sum_track_length = list_sum_track_length;
+		int length_list_qt = list_qt.size();
+		//std::cout << length_list_qt << std::endl;
+		copy_list_qt = list_qt;
 
 		for (int my_i = 0; my_i < length_list_track_length; my_i++) {
 			list_track_length.pop_back();
 			list_sum_track_length.pop_back();
 		}
-		
+		for (int my_i = 0; my_i < length_list_qt; my_i++) {
+			list_qt.pop_back();
+		}
 
 
+		int length_arc_list_tile_qt = arc_list_tile_qt.size();
+		if (tw->rail_tile->value()) {
+
+			for (int i = 0; i < length_arc_list_tile_qt; i += 3) {
+				Pnt3f qt = arc_list_tile_qt[i];
+				Pnt3f right = arc_list_tile_qt[i + 1] * 2;
+				Pnt3f forward = arc_list_tile_qt[i + 2] * 2;
+				Pnt3f up = right * forward;
+				up.normalize();
+
+				//up 
+				glBegin(GL_POLYGON);
+				glNormal3f(up.x, up.y, up.z);
+				glVertex3f(qt.x + forward.x - right.x, qt.y + forward.y - right.y, qt.z + forward.z - right.z);
+				glVertex3f(qt.x + forward.x + right.x, qt.y + forward.y + right.y, qt.z + forward.z + right.z);
+				glVertex3f(qt.x - forward.x + right.x, qt.y - forward.y + right.y, qt.z - forward.z + right.z);
+				glVertex3f(qt.x - forward.x - right.x, qt.y - forward.y - right.y, qt.z - forward.z - right.z);
+				glEnd();
+
+				//down
+				glBegin(GL_POLYGON);
+				glNormal3f(-up.x, -up.y, -up.z);
+				glVertex3f(qt.x + forward.x - right.x - up.x, qt.y + forward.y - right.y - up.y, qt.z + forward.z - right.z - up.z);
+				glVertex3f(qt.x + forward.x + right.x - up.x, qt.y + forward.y + right.y - up.y, qt.z + forward.z + right.z - up.z);
+				glVertex3f(qt.x - forward.x + right.x - up.x, qt.y - forward.y + right.y - up.y, qt.z - forward.z + right.z - up.z);
+				glVertex3f(qt.x - forward.x - right.x - up.x, qt.y - forward.y - right.y - up.y, qt.z - forward.z - right.z - up.z);
+				glEnd();
+
+				//left
+				glBegin(GL_POLYGON);
+				glNormal3f(-up.x, -up.y, -up.z);
+				glVertex3f(qt.x + forward.x + right.x, qt.y + forward.y + right.y, qt.z + forward.z + right.z);
+				glVertex3f(qt.x + forward.x + right.x - up.x, qt.y + forward.y + right.y - up.y, qt.z + forward.z + right.z - up.z);
+				glVertex3f(qt.x - forward.x + right.x - up.x, qt.y - forward.y + right.y - up.y, qt.z - forward.z + right.z - up.z);
+				glVertex3f(qt.x - forward.x + right.x, qt.y - forward.y + right.y, qt.z - forward.z + right.z);
+				glEnd();
+
+				//left
+				glBegin(GL_POLYGON);
+				glNormal3f(-up.x, -up.y, -up.z);
+				glVertex3f(qt.x + forward.x - right.x, qt.y + forward.y - right.y, qt.z + forward.z - right.z);
+				glVertex3f(qt.x + forward.x - right.x - up.x, qt.y + forward.y - right.y - up.y, qt.z + forward.z - right.z - up.z);
+				glVertex3f(qt.x - forward.x - right.x - up.x, qt.y - forward.y - right.y - up.y, qt.z - forward.z - right.z - up.z);
+				glVertex3f(qt.x - forward.x - right.x, qt.y - forward.y - right.y, qt.z - forward.z - right.z);
+				glEnd();
+			}
+		}
+
+		if (tw->rail_support->value()) {
+
+			for (int i = 0; i < length_arc_list_tile_qt; i += 6) {
+				Pnt3f qt = arc_list_tile_qt[i];
+				Pnt3f right = arc_list_tile_qt[i + 1];
+				Pnt3f forward = arc_list_tile_qt[i + 2] * 2;
+				Pnt3f up = right * forward;
+				up.normalize();
+
+				if (!tw->rail_parallel->value()) {
+					// up
+					glBegin(GL_LINES);
+					glLineWidth(200);
+					glVertex3f(qt.x, qt.y, qt.z);
+					glVertex3f(qt.x, 0, qt.z);
+					glEnd();
+				}
+				else {
+					glBegin(GL_LINES);
+					glLineWidth(200);
+					glVertex3f(qt.x + right.x, qt.y + right.y, qt.z + right.z);
+					glVertex3f(qt.x + right.x, 0, qt.z + right.z);
+
+					glVertex3f(qt.x - right.x, qt.y - right.y, qt.z - right.z);
+					glVertex3f(qt.x - right.x, 0, qt.z - right.z);
+					glEnd();
+				}
+
+
+			}
+		}
+
+		int length_arc_list_tunnel_qt = (int)(arc_list_tunnel_qt.size() * tw->tunnel_length->value());
+		//std::cout << "tunnel length: " << length_arc_list_tunnel_qt << std::endl;
+		if (tw->rail_tunnel->value()) {
+			std::cout << "draw_tunnel" << std::endl;
+
+			if (length_arc_list_tunnel_qt > 0) {
+				for (int i = 0; i < length_arc_list_tunnel_qt; i += 3) {
+					Pnt3f qt = arc_list_tunnel_qt[i];
+					Pnt3f right = arc_list_tunnel_qt[i + 1] * 3;
+					Pnt3f forward = arc_list_tunnel_qt[i + 2] * 3;
+					Pnt3f up = right * forward;
+
+					forward.normalize();
+					forward = forward * 0.1;
+
+					up.normalize();
+					up = up * 10;
+
+					if (!doingShadows) {
+						glColor3f(0.5, 0.5, 0.1);
+					}
+
+					//right
+					glBegin(GL_POLYGON);
+					glNormal3f(-up.x, -up.y, -up.z);
+					glVertex3f(qt.x + right.x, qt.y + right.y, qt.z + right.z);
+					glVertex3f(qt.x + right.x + up.x, qt.y + right.y + up.y, qt.z + right.z + up.z);
+					glVertex3f(qt.x + right.x * 1.2 + up.x, qt.y + right.y * 1.2 + up.y, qt.z + right.z * 1.2 + up.z);
+					glVertex3f(qt.x + right.x * 1.2, qt.y + right.y * 1.2, qt.z + right.z * 1.2);
+					glEnd();
+
+					// top 
+					glBegin(GL_POLYGON);
+					glVertex3f(qt.x + up.x - right.x * 1.2, qt.y + up.y - right.y * 1.2, qt.z + up.z - right.z * 1.2);
+					glVertex3f(qt.x + up.x + right.x * 1.2, qt.y + up.y + right.y * 1.2, qt.z + up.z + right.z * 1.2);
+					glVertex3f(qt.x + up.x * 1.1 + right.x * 1.2, qt.y + up.y * 1.1 + right.y * 1.2, qt.z + up.z * 1.1 + right.z * 1.2);
+					glVertex3f(qt.x + up.x * 1.1 - right.x * 1.2, qt.y + up.y * 1.1 - right.y * 1.2, qt.z + up.z * 1.1 - right.z * 1.2);
+					glEnd();
+
+					// top outside
+					glBegin(GL_POLYGON);
+					glVertex3f(qt.x + up.x * 1.1 + right.x * 1.2, qt.y + up.y * 1.1 + right.y * 1.2, qt.z + up.z * 1.1 + right.z * 1.2);
+					glVertex3f(qt.x + up.x * 1.1 - right.x * 1.2, qt.y + up.y * 1.1 - right.y * 1.2, qt.z + up.z * 1.1 - right.z * 1.2);
+					glVertex3f(qt.x + up.x * 1.1 - right.x * 1.2 + forward.x, qt.y + up.y * 1.1 - right.y * 1.2 + forward.y, qt.z + up.z * 1.1 - right.z * 1.2 + forward.z);
+					glVertex3f(qt.x + up.x * 1.1 + right.x * 1.2 + forward.x, qt.y + up.y * 1.1 + right.y * 1.2 + forward.y, qt.z + up.z * 1.1 + right.z * 1.2 + forward.z);
+					glEnd();
+
+					// top inside
+					glBegin(GL_POLYGON);
+					glVertex3f(qt.x + up.x + right.x * 1.2, qt.y + up.y + right.y * 1.2, qt.z + up.z + right.z * 1.2);
+					glVertex3f(qt.x + up.x - right.x * 1.2, qt.y + up.y - right.y * 1.2, qt.z + up.z - right.z * 1.2);
+					glVertex3f(qt.x + up.x - right.x * 1.2 + forward.x, qt.y + up.y - right.y * 1.2 + forward.y, qt.z + up.z - right.z * 1.2 + forward.z);
+					glVertex3f(qt.x + up.x + right.x * 1.2 + forward.x, qt.y + up.y + right.y * 1.2 + forward.y, qt.z + up.z + right.z * 1.2 + forward.z);
+					glEnd();
+
+
+
+
+					// top inside
+
+					//right outside
+					glBegin(GL_POLYGON);
+					glNormal3f(-up.x, -up.y, -up.z);
+					glVertex3f(qt.x + right.x * 1.2, qt.y + right.y * 1.2, qt.z + right.z * 1.2);
+					glVertex3f(qt.x + right.x * 1.2 + up.x, qt.y + right.y * 1.2 + up.y, qt.z + right.z * 1.2 + up.z);
+					glVertex3f(qt.x + right.x * 1.2 + up.x + forward.x, qt.y + right.y * 1.2 + up.y + forward.y, qt.z + right.z * 1.2 + up.z + forward.z);
+					glVertex3f(qt.x + right.x * 1.2 + forward.x, qt.y + right.y * 1.2 + forward.y, qt.z + right.z * 1.2 + forward.z);
+					glEnd();
+
+					//right inside
+					glBegin(GL_POLYGON);
+					glNormal3f(-up.x, -up.y, -up.z);
+					glVertex3f(qt.x + right.x, qt.y + right.y, qt.z + right.z);
+					glVertex3f(qt.x + right.x + up.x, qt.y + right.y + up.y, qt.z + right.z + up.z);
+					glVertex3f(qt.x + right.x + up.x + forward.x, qt.y + right.y + up.y + forward.y, qt.z + right.z + up.z + forward.z);
+					glVertex3f(qt.x + right.x + forward.x, qt.y + right.y + forward.y, qt.z + right.z + forward.z);
+					glEnd();
+
+					//left
+					glBegin(GL_POLYGON);
+					glNormal3f(-up.x, -up.y, -up.z);
+					glVertex3f(qt.x - right.x, qt.y - right.y, qt.z - right.z);
+					glVertex3f(qt.x - right.x + up.x, qt.y - right.y + up.y, qt.z - right.z + up.z);
+					glVertex3f(qt.x - right.x * 1.2 + up.x, qt.y - right.y * 1.2 + up.y, qt.z - right.z * 1.2 + up.z);
+					glVertex3f(qt.x - right.x * 1.2, qt.y - right.y * 1.2, qt.z - right.z * 1.2);
+					glEnd();
+
+					//left outside
+					glBegin(GL_POLYGON);
+					glNormal3f(-up.x, -up.y, -up.z);
+					glVertex3f(qt.x - right.x * 1.2, qt.y - right.y * 1.2, qt.z - right.z * 1.2);
+					glVertex3f(qt.x - right.x * 1.2 + up.x, qt.y - right.y * 1.2 + up.y, qt.z - right.z * 1.2 + up.z);
+					glVertex3f(qt.x - right.x * 1.2 + up.x + forward.x, qt.y - right.y * 1.2 + up.y + forward.y, qt.z - right.z * 1.2 + up.z + forward.z);
+					glVertex3f(qt.x - right.x * 1.2 + forward.x, qt.y - right.y * 1.2 + forward.y, qt.z - right.z * 1.2 + forward.z);
+					glEnd();
+
+					//left inside
+					glBegin(GL_POLYGON);
+					glNormal3f(-up.x, -up.y, -up.z);
+					glVertex3f(qt.x - right.x, qt.y - right.y, qt.z - right.z);
+					glVertex3f(qt.x - right.x + up.x, qt.y - right.y + up.y, qt.z - right.z + up.z);
+					glVertex3f(qt.x - right.x + up.x + forward.x, qt.y - right.y + up.y + forward.y, qt.z - right.z + up.z + forward.z);
+					glVertex3f(qt.x - right.x + forward.x, qt.y - right.y + forward.y, qt.z - right.z + forward.z);
+					glEnd();
+				}
+			}
+		}
 	}
 
 	if (!tw->trainCam->value()) {
-		drawTrain(doingShadows, 0);
+		drawTrain(doingShadows, 0, 1);
 		for (int i = 0; i < num_cars; i++) {
-			drawTrain(doingShadows, (i + 1) * 10);
+			drawTrain(doingShadows, (i + 1) * 10, 0);
 		}
 	}
 #ifdef EXAMPLE_SOLUTION
@@ -761,7 +1297,7 @@ void TrainView::drawStuff(bool doingShadows)
 }
 
 
-Pnt3f TrainView::GMT(const Pnt3f& pt0, const Pnt3f& pt1, const Pnt3f& pt2, const Pnt3f& pt3, float t, int type) {
+Pnt3f TrainView::GMT(const Pnt3f& pt0, const Pnt3f& pt1, const Pnt3f& pt2, const Pnt3f& pt3, double t, int type) {
 	glm::mat4x4 M;
 	switch (type) {
 	case 2: {
@@ -810,8 +1346,8 @@ int face[][4] = {
 };
 
 float myColor[][3] = {
-	{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0},
-	{1.0, 1.0, 0.0}, {1.0, 0.0, 1.0}, {0.0, 1.0, 1.0}
+	{0.5, 0.0, 0.5}, {0.5, 0.0, 0.5}, {0.5, 0.0, 0.5},
+	{0.5, 0.0, 0.5}, {0.5, 0.0, 0.5}, {0.5, 0.0, 0.5}
 };
 
 void TrainView::drawCube(bool doingShadows) {
@@ -830,7 +1366,7 @@ void TrainView::drawCube(bool doingShadows) {
 	}
 }
 
-void TrainView::drawTrain(bool doingShadows, float backward_distance) {
+void TrainView::drawTrain(bool doingShadows, float backward_distance, bool head) {
 	Pnt3f qt;
 	Pnt3f forward;
 	Pnt3f right;
@@ -838,10 +1374,14 @@ void TrainView::drawTrain(bool doingShadows, float backward_distance) {
 	// set start_point for arc-length
 	
 	float local_current_length = current_length - backward_distance;
+
 	int local_start_point = 0;
 	
 	if (local_current_length < 0) {
-		local_current_length += copy_list_sum_track_length[copy_list_sum_track_length.size() - 1];
+		local_current_length += copy_list_qt.size() - 1;
+	}
+	if (!head) {
+		//std::cout << "passenger" << local_current_length << std::endl;
 	}
 
 	
@@ -918,6 +1458,7 @@ void TrainView::drawTrain(bool doingShadows, float backward_distance) {
 
 		if (tw->arcLength->value()) {
 			
+			
 			Pnt3f train_cp_pos_p1 = m_pTrack->points[local_start_point % m_pTrack->points.size()].pos;
 			Pnt3f train_cp_pos_p2 = m_pTrack->points[(local_start_point + 1) % m_pTrack->points.size()].pos;
 			Pnt3f train_cp_pos_p3 = m_pTrack->points[(local_start_point + 2) % m_pTrack->points.size()].pos;
@@ -931,21 +1472,37 @@ void TrainView::drawTrain(bool doingShadows, float backward_distance) {
 			
 		
 			
-			float train_percentage;
+			double train_percentage;
 			if (local_start_point == 0) {
 				train_percentage = local_current_length / copy_list_sum_track_length[0];
 			}
 			else {
-				if (copy_list_sum_track_length.size() > local_start_point)
-					train_percentage = (local_current_length - copy_list_sum_track_length[local_start_point - 1]) / (copy_list_sum_track_length[local_start_point] - copy_list_sum_track_length[local_start_point - 1]);
+				if (copy_list_sum_track_length.size() > local_start_point) {
+					train_percentage = ((local_current_length - copy_list_sum_track_length[local_start_point - 1]) / (copy_list_sum_track_length[local_start_point] - copy_list_sum_track_length[local_start_point - 1]));
+					//std::cout << "here" << std::endl;
+					//std::cout << "train: " << train_percentage << std::endl;
+				}
 				else {
 					std::cout << "copy: " << copy_list_sum_track_length.size()  << " local_start_point " << local_start_point << std::endl;
 					train_percentage = 0;
 				}
 			}
 
-			qt = GMT(train_cp_pos_p1, train_cp_pos_p2, train_cp_pos_p3, train_cp_pos_p4, train_percentage, tw->splineBrowser->value());
-			Pnt3f qt1 = GMT(train_cp_pos_p1, train_cp_pos_p2, train_cp_pos_p3, train_cp_pos_p4, train_percentage + 0.0001, tw->splineBrowser->value());
+			
+			Pnt3f qt1;
+
+			if (local_current_length < copy_list_qt.size() - 1) {
+				qt = copy_list_qt[local_current_length];
+				qt1 = copy_list_qt[local_current_length + 1];
+			}
+			else {
+				//std::cout << local_current_length << std::endl;
+				if (head)
+					current_length = 0;
+				qt = copy_list_qt[0];
+				qt1 = copy_list_qt[1];
+			}
+
 
 			Pnt3f orient = GMT(train_cp_orient_p1, train_cp_orient_p2, train_cp_orient_p3, train_cp_orient_p4, train_percentage, tw->splineBrowser->value());
 
@@ -997,14 +1554,241 @@ void TrainView::drawTrain(bool doingShadows, float backward_distance) {
 	0.0, 0.0, 0.0, 1.0
 	};
 
+	float rotation_90[16] = {
+	cos(-1.5707963268), 0, sin(-1.5707963268), 0,
+	0, 1, 0, 0,
+	-sin(-1.5707963268), 0, cos(-1.5707963268), 0,
+	0, 0, 0, 1
+	};
+
+
+	float deg = (local_current_length / ( 2 * 0.3 * 3.14)) * 360;
+	float rad = (int(deg) % 360) * 3.14 / 180;
+
+	// std::cout << "local_length: " << local_current_length << " deg: " << deg << std::endl;
+
+	float rotation_wheel_y[16] = {
+		cos(1), 0, sin(1), 0,
+		0, 1, 0, 0,
+		-sin(1), 0, cos(1), 0,
+		0,0,0,1
+	};
+
+	float rotation_wheel_z[16] = {
+		cos(rad), -sin(rad), 0, 0,
+		sin(rad), cos(rad), 0, 0,
+		0,0,1,0,
+		0,0,0,1
+	};
+
+	if (head) {
+		current_train_pos = qt;
+		current_train_forward = forward;
+	}
+	
+	
 	glPushMatrix();
 	glTranslatef(qt.x, qt.y, qt.z);
 	glMultMatrixf(rotation);
 	glScalef(5.0f, 5.0f, 5.0f);
-	glTranslatef(-0.5f, -0.5f, -0.5f);
-	drawCube(doingShadows);
+	glTranslatef(-0.5f, 1, -0.5f);
+	if (head) {
+		drawCube(doingShadows);
+	}
+	
+	glMultMatrixf(rotation_90);
+	glScalef(1.2f, 1.2f, 1.2f);
+	glTranslatef(-0.5, 0, 0);
+	if (head) {
+		if (!doingShadows)
+			glColor3f(0.5, 0, 0);
+		gluCylinder(gluNewQuadric(), 0.5, 0.5, 2, 50, 1);
+		if (!doingShadows)
+			glColor3f(0.5, 0, 0.5);
+		gluDisk(gluNewQuadric(), 0.0, 0.5, 64, 1);
+	}
+
+	//back splash
+	glBegin(GL_POLYGON);
+	if (!doingShadows)
+		glColor3f(0, 0, 0);
+	glVertex3f(-0.5, -0.7, 0.1);
+	glVertex3f(0.5, -0.7, 0.1);
+	glVertex3f(0.5, -0.2, 0.1);
+	glVertex3f(-0.5, -0.2, 0.1);
+	glEnd();
+	
+	//left splash
+	glBegin(GL_POLYGON);
+	if (!doingShadows)
+		glColor3f(0, 0, 0);
+	glVertex3f(0.5, -0.7, 0.1);
+	glVertex3f(0.5, -0.2, 0.1);
+	glVertex3f(0.5, -0.2, 1.5);
+	glVertex3f(0.5, -0.7, 1.5);
+	glEnd();
+
+	// bottom splash
+	glBegin(GL_POLYGON);
+	if (!doingShadows)
+		glColor3f(0, 0, 0);
+	glVertex3f(0.5, -0.7, 0.1);
+	glVertex3f(0.5, -0.7, 1.5);
+	glVertex3f(-0.5, -0.7, 1.5);
+	glVertex3f(-0.5, -0.7, 0.1);
+	glEnd();
+
+	// top splash
+	
+	glBegin(GL_POLYGON);
+	if (!doingShadows)
+		glColor3f(0, 0, 0);
+	glVertex3f(0.5, -0.2, 0.1);
+	glVertex3f(0.5, -0.2, 1.5);
+	glVertex3f(-0.5, -0.2, 1.5);
+	glVertex3f(-0.5, -0.2, 0.1);
+	glEnd();
+	
+
+	//right splash
+	glBegin(GL_POLYGON);
+	if (!doingShadows)
+		glColor3f(0, 0, 0);
+	glVertex3f(-0.5, -0.7, 0.1);
+	glVertex3f(-0.5, -0.2, 0.1);
+	glVertex3f(-0.5, -0.2, 1.5);
+	glVertex3f(-0.5, -0.7, 1.5);
+	glEnd();
+
+	//front train
+	glTranslatef(0,0,2);
+	if (head) {
+		if (!doingShadows)
+			glColor3f(1, 1, 0);
+		gluDisk(gluNewQuadric(), 0.0, 0.5, 64, 1);
+	}
+
+
+	//front splash
+	glTranslatef(0, 0, -0.5);
+	glTranslatef(0, -0.7, 0);
+	glBegin(GL_POLYGON);
+	if (!doingShadows)
+		glColor3f(0, 0, 0);
+	glVertex3f(-0.5, 0, 0);
+	glVertex3f(0.5, 0, 0);
+	glVertex3f(0.5, 0.5, 0);
+	glVertex3f(-0.5, 0.5, 0);
+	glEnd();
+
+
 	glPopMatrix();
- 
+
+
+	// left hind wheel
+	glPushMatrix();
+	glTranslatef(qt.x, qt.y, qt.z);
+	glMultMatrixf(rotation);
+	glScalef(5.0f, 5.0f, 5.0f);
+	if (!doingShadows)
+		glColor3f(1, 0, 0);
+	
+	glTranslatef(0,0,-0.7);
+	glMultMatrixf(rotation_wheel_z);
+	gluCylinder(gluNewQuadric(), 0.3, 0.3, 0.5, 50, 1);
+	gluDisk(gluNewQuadric(), 0.0, 0.3, 64, 1);
+
+
+	glTranslatef(0, 0, -0.05);
+	
+	glBegin(GL_LINES);
+	glLineWidth(20);
+	if (!doingShadows)
+		glColor3f(0, 1, 0);
+	glVertex3f(0, -0.3, 0);
+	glVertex3f(0, 0.3, 0);
+	glEnd();
+	glPopMatrix();
+
+	// left front wheel
+	glPushMatrix();
+	glTranslatef(qt.x, qt.y, qt.z);
+	glMultMatrixf(rotation);
+	glScalef(5.0f, 5.0f, 5.0f);
+	if (!doingShadows)
+		glColor3f(1, 0, 0);
+
+	glTranslatef(1, 0, -0.7);
+	glMultMatrixf(rotation_wheel_z);
+	gluCylinder(gluNewQuadric(), 0.3, 0.3, 0.5, 50, 1);
+	gluDisk(gluNewQuadric(), 0.0, 0.3, 64, 1);
+
+
+	glTranslatef(0, 0, -0.05);
+	glBegin(GL_LINES);
+	glLineWidth(20);
+	if (!doingShadows)
+		glColor3f(0, 1, 0);
+	glVertex3f(0, -0.3, 0);
+	glVertex3f(0, 0.3, 0);
+	glEnd();
+	glPopMatrix();
+
+	// right hind wheel
+	glPushMatrix();
+	glTranslatef(qt.x, qt.y, qt.z);
+	glMultMatrixf(rotation);
+	glScalef(5.0f, 5.0f, 5.0f);
+	if (!doingShadows)
+		glColor3f(1, 0, 0);
+
+	glTranslatef(0, 0, 0.2);
+	glMultMatrixf(rotation_wheel_z);
+	gluCylinder(gluNewQuadric(), 0.3, 0.3, 0.5, 50, 1);
+	glTranslatef(0, 0, 0.5);
+	gluDisk(gluNewQuadric(), 0.0, 0.3, 64, 1);
+
+	glTranslatef(0, 0, 0.05);
+	glBegin(GL_LINES);
+	glLineWidth(20);
+	if (!doingShadows)
+		glColor3f(0, 1, 0);
+	glVertex3f(0, -0.3, 0);
+	glVertex3f(0, 0.3, 0);
+	glEnd();
+	glPopMatrix();
+	
+
+
+	
+
+	// right front wheel
+	glPushMatrix();
+	glTranslatef(qt.x, qt.y, qt.z);
+	glMultMatrixf(rotation);
+	glScalef(5.0f, 5.0f, 5.0f);
+	if (!doingShadows)
+		glColor3f(1, 0, 0);
+
+	glTranslatef(1, 0, 0.2);
+	glMultMatrixf(rotation_wheel_z);
+	gluCylinder(gluNewQuadric(), 0.3, 0.3, 0.5, 50, 1);
+	glTranslatef(0, 0, 0.5);
+	gluDisk(gluNewQuadric(), 0.0, 0.3, 64, 1);
+
+
+	glTranslatef(0, 0, 0.05);
+	glBegin(GL_LINES);
+	glLineWidth(20);
+	if (!doingShadows)
+		glColor3f(0, 1, 0);
+	glVertex3f(0, -0.3, 0);
+	glVertex3f(0, 0.3, 0);
+	glEnd();
+	glPopMatrix();
+
+
+
 	/*
 	glBegin(GL_QUADS); //front
 	if (!doingShadows)

@@ -94,6 +94,7 @@ class TrainWindow : public Fl_Double_Window {
 		// if we're animating it, how fast should it go?
 		Fl_Value_Slider*	speed;
 		Fl_Value_Slider*	tension;
+		Fl_Value_Slider* tunnel_length;
 
 		Fl_Button*			arcLength;		// do we use arc length for speed?
 
@@ -101,6 +102,7 @@ class TrainWindow : public Fl_Double_Window {
 		Fl_Button* rail_tile;
 		Fl_Button* rail_road;
 		Fl_Button* rail_support;
+		Fl_Button* rail_tunnel;
 		Fl_Button* my_scene;
 
 		Fl_Button* Light0;

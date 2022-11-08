@@ -70,9 +70,9 @@ class TrainView : public Fl_Gl_Window
 		// it has to be encapsulated, since we draw differently if
 		// we're drawing shadows (no colors, for example)
 		void drawStuff(bool doingShadows=false);
-		void drawTrain(bool doingShadows, float);
+		void drawTrain(bool doingShadows, float, bool);
 		void drawPlane(float*);
-		Pnt3f GMT(const Pnt3f& pt0, const Pnt3f& pt1, const Pnt3f& pt2, const Pnt3f& pt3, float t, int type);
+		Pnt3f GMT(const Pnt3f& pt0, const Pnt3f& pt1, const Pnt3f& pt2, const Pnt3f& pt3, double t, int type);
 		void drawCube(bool);
 		
 		
@@ -101,6 +101,14 @@ class TrainView : public Fl_Gl_Window
 		std::vector<float> list_track_length;
 		float current_length = 0.0f;
 		std::vector<float> copy_list_sum_track_length;
+		std::vector<Pnt3f> list_qt;
+		std::vector<Pnt3f> copy_list_qt;
+		std::vector<Pnt3f> copy_list_qt_orient;
+
+		Pnt3f current_train_pos;
+		Pnt3f current_train_forward;
+
+
 
 		int start_point = 0;
 		int num_cars = 0; 

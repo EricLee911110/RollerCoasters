@@ -125,7 +125,25 @@ void drawFloor(float size, int nSquares)
 	glBegin(GL_QUADS);
 	for(x=0,xp=minX; x<nSquares; x++,xp+=xd) {
 		for(y=0,yp=minY,i=x; y<nSquares; y++,i++,yp+=yd) {
-			glColor4fv(i%2==1 ? floorColor1:floorColor2);
+			glColor4f(1,1,1,1);
+			if (yp > 0) {
+				glColor4f(0.05, 0.5, 0.2, 1);
+			}
+
+			if (xp > -15 && xp < 15) {
+				glColor4f(0,0,0,1);
+			}
+			if (yp > -15 && yp < 15) {
+				glColor4f(0, 0, 0, 1);
+			}
+
+			if (((xp > -2 && xp < 0) || (xp > 0 && xp < 2)) && (yp > 20 || yp < -20)) {
+				glColor4f(1, 1, 0, 1);
+			}
+			if (((yp > -2 && yp < 0) || (yp > 0 && yp < 2)) && (xp > 20 || xp < -20)) {
+				glColor4f(1, 1, 0, 1);
+			}
+
 			glNormal3f(0, 1, 0); 
 			glVertex3d(xp,      0, yp);
 			glVertex3d(xp,      0, yp + yd);
