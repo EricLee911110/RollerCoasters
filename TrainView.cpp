@@ -733,6 +733,8 @@ void TrainView::drawStuff(bool doingShadows)
 				cross_t = cross_t * 2.5f;
 				if (tw->rail_parallel->value()) {
 					glBegin(GL_LINES);
+					if (!doingShadows)
+						glColor3f(1,0,0);
 					glLineWidth(3);
 					glVertex3f(qt0.x + cross_t.x, qt0.y + cross_t.y, qt0.z + cross_t.z);
 					glVertex3f(qt1.x + cross_t.x, qt1.y + cross_t.y, qt1.z + cross_t.z);
@@ -800,6 +802,9 @@ void TrainView::drawStuff(bool doingShadows)
 				Pnt3f forward = arc_list_tile_qt[i + 2] * 2;
 				Pnt3f up = right * forward;
 				up.normalize();
+
+				if (!doingShadows)
+					glColor3f(1, 0, 0);
 				
 				// up
 				glBegin(GL_POLYGON);
@@ -952,6 +957,8 @@ void TrainView::drawStuff(bool doingShadows)
 
 				if (!tw->rail_parallel->value()) {
 					// up
+					if (!doingShadows)
+						glColor3f(1, 0, 0);
 					glBegin(GL_LINES);
 					glLineWidth(200);
 					glVertex3f(qt.x, qt.y, qt.z);
@@ -959,6 +966,8 @@ void TrainView::drawStuff(bool doingShadows)
 					glEnd();
 				}
 				else {
+					if (!doingShadows)
+						glColor3f(1, 0, 0);
 					glBegin(GL_LINES);
 					glLineWidth(200);
 					glVertex3f(qt.x + right.x, qt.y + right.y, qt.z + right.z);
@@ -1021,7 +1030,7 @@ void TrainView::drawStuff(bool doingShadows)
 					glLineWidth(3);
 					glBegin(GL_LINES);
 					if (!doingShadows)
-						glColor3ub(32, 32, 64);
+						glColor3ub(1, 0, 0);
 					glVertex3f(qt0.x, qt0.y, qt0.z);
 					glVertex3f(qt1.x, qt1.y, qt1.z);
 					glEnd();
@@ -1037,6 +1046,8 @@ void TrainView::drawStuff(bool doingShadows)
 				cross_t.normalize();
 				cross_t = cross_t * 2.5f;
 				if (tw->rail_parallel->value()) {
+					if (!doingShadows)
+						glColor3f(1, 0, 0);
 					glBegin(GL_LINES);
 					glLineWidth(3);
 					glVertex3f(qt0.x + cross_t.x, qt0.y + cross_t.y, qt0.z + cross_t.z);
@@ -1094,6 +1105,9 @@ void TrainView::drawStuff(bool doingShadows)
 				Pnt3f up = right * forward;
 				up.normalize();
 
+				if (!doingShadows)
+					glColor3f(1, 0, 0);
+
 				//up 
 				glBegin(GL_POLYGON);
 				glNormal3f(up.x, up.y, up.z);
@@ -1143,6 +1157,8 @@ void TrainView::drawStuff(bool doingShadows)
 
 				if (!tw->rail_parallel->value()) {
 					// up
+					if (!doingShadows)
+						glColor3f(1, 0, 0);
 					glBegin(GL_LINES);
 					glLineWidth(200);
 					glVertex3f(qt.x, qt.y, qt.z);
@@ -1150,6 +1166,8 @@ void TrainView::drawStuff(bool doingShadows)
 					glEnd();
 				}
 				else {
+					if (!doingShadows)
+						glColor3f(1, 0, 0);
 					glBegin(GL_LINES);
 					glLineWidth(200);
 					glVertex3f(qt.x + right.x, qt.y + right.y, qt.z + right.z);
@@ -1167,7 +1185,7 @@ void TrainView::drawStuff(bool doingShadows)
 		int length_arc_list_tunnel_qt = (int)(arc_list_tunnel_qt.size() * tw->tunnel_length->value());
 		//std::cout << "tunnel length: " << length_arc_list_tunnel_qt << std::endl;
 		if (tw->rail_tunnel->value()) {
-			std::cout << "draw_tunnel" << std::endl;
+			//std::cout << "draw_tunnel" << std::endl;
 
 			if (length_arc_list_tunnel_qt > 0) {
 				for (int i = 0; i < length_arc_list_tunnel_qt; i += 3) {

@@ -162,8 +162,7 @@ TrainWindow(const int x, const int y)
 		rail_tile = new Fl_Button(675, pty, 30, 20, "Tile");
 		togglify(rail_tile, 0);
 
-		rail_road = new Fl_Button(710, pty, 40, 20, "Road");
-		togglify(rail_road, 0);
+		
 		
 		rail_support = new Fl_Button(755, pty, 30, 20, "Sup");
 		togglify(rail_support, 0);
@@ -176,22 +175,14 @@ TrainWindow(const int x, const int y)
 		togglify(rail_tunnel, 0);
 		
 		pty += 30;
-		tunnel_length = new Fl_Value_Slider(655, pty, 140, 20, "tension");
+		tunnel_length = new Fl_Value_Slider(655, pty, 140, 20, "tunnel");
 		tunnel_length->range(0, 1);
 		tunnel_length->value(0.5);
 		tunnel_length->align(FL_ALIGN_LEFT);
 		tunnel_length->type(FL_HORIZONTAL);
 
 
-		pty += 30;
-		Light0 = new Fl_Button(605, pty, 65, 20, "L0");
-		togglify(Light0, 1);
-
-		Light1 = new Fl_Button(675, pty, 30, 20, "L1");
-		togglify(Light1, 1);
-
-		Light2 = new Fl_Button(710, pty, 40, 20, "L2");
-		togglify(Light2, 1);
+		
 
 
 		// TODO: add widgets for all of your fancier features here
