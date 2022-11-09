@@ -1580,7 +1580,7 @@ void TrainView::drawTrain(bool doingShadows, float backward_distance, bool head)
 	};
 
 
-	float deg = (local_current_length / ( 2 * 0.3 * 3.14)) * 360;
+	float deg = (local_current_length / ( 2 * 3 * 3.14)) * 360;
 	float rad = (int(deg) % 360) * 3.14 / 180;
 
 	// std::cout << "local_length: " << local_current_length << " deg: " << deg << std::endl;
